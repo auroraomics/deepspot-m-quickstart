@@ -1,0 +1,46 @@
+# Nothing downloaded, packed, predicted or drawn belongs in this repository.
+# The example data is published under its own DOI and is fetched on demand;
+# a slide or a result committed here would be a second, unversioned copy of
+# somebody else's dataset.
+
+# The example data and everything derived from it. `data/*` rather than
+# `data/`, because git does not look inside an ignored DIRECTORY and the
+# exception below would never be reached.
+data/*
+!data/.gitkeep
+
+# Slides, archives and result files, wherever they land.
+*.tif
+*.tiff
+*.svs
+*.ndpi
+*.h5ad
+*.h5
+*.zip
+*.npz
+*.part
+
+# Figures a notebook writes. Scoped to the directory the notebooks write
+# into, so an image that is genuinely part of this repository can still be
+# committed beside the page that shows it.
+figures/
+
+# Credentials. A key is minted onto the machine that uses it and never
+# travels in a repository; `auroraomics login` stores it outside this tree.
+.env
+*.key
+*.pem
+
+# Notebook and Python scratch.
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.Python
+*.egg-info/
+
+# Editors and platforms.
+.DS_Store
+.vscode/
+.idea/
