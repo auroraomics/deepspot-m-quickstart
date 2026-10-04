@@ -1,27 +1,20 @@
 """Fetch one member of the example archive, without downloading the archive.
 
-The example data is a single published archive of just under 2 GiB. A notebook
-that asks for all of it before it can draw anything is a notebook nobody runs,
-and the two files these notebooks need are a tenth of it.
+The example data is one published archive. The notebooks need one slide from
+it, so this module reads the archive's index over two small range requests and
+streams only that member to disk, checking its stored checksum as it arrives.
 
-A zip file keeps an index of its members at the end, and HTTP can ask for a
-byte range. So this module reads the index over two small requests, finds the
-member you asked for, and streams only that member's bytes, inflating them on
-the way to disk. Nothing else is transferred and nothing is cached in memory.
-
-Every fact about the archive is read from the record rather than written here:
-the file name, its size and its download URL come from the Zenodo API, and the
-member offsets come from the archive's own index.
+The file name, its size and its download URL come from the Zenodo record, and
+the member offsets from the archive's own index.
 
     python -m quickstart.zenodo --list
-    python -m quickstart.zenodo slide measured
+    python -m quickstart.zenodo slide
 
 Data source
 -----------
 Dawo, S., Nonchev, K., & Silina, K. (2025). *10x Visium Spatial
 Transcriptomics Dataset: Kidney (3) and Lung (5) Cancer with Tertiary Lymphoid
 Structures* [Data set]. Zenodo. https://doi.org/10.5281/zenodo.14620362
-Licensed CC-BY-4.0. Re-use requires attribution.
 """
 
 from __future__ import annotations
@@ -41,7 +34,6 @@ RECORD_ID = "14620362"
 """The Zenodo record. Everything else about the archive is read from it."""
 
 DOI = "10.5281/zenodo.14620362"
-LICENCE = "CC-BY-4.0"
 CITATION = (
     "Dawo, S., Nonchev, K., & Silina, K. (2025). 10x Visium Spatial "
     "Transcriptomics Dataset: Kidney (3) and Lung (5) Cancer with Tertiary "
@@ -50,26 +42,19 @@ CITATION = (
 )
 
 SAMPLE = "LC1"
-"""The lung-cancer section these notebooks use.
+"""The lung cancer section the notebooks use.
 
-The archive holds five lung and three kidney sections. Change this to any of
-them and both notebooks follow, because every path below is built from it.
+The archive holds five lung and three kidney sections; pass ``sample=`` (or
+``--sample``) to fetch another.
 """
 
 ROLES = {
     "slide": r"tif_slides/{sample}\.tif$",
-    "measured": r"h5ad_preprocessed/{sample}\.h5ad$",
 }
-"""What each notebook asks for, as a pattern over the archive's own index.
+"""What the notebooks ask for, as a pattern over the archive's own index.
 
-Two files, not a directory tree. `slide` is the H&E image the prediction is
-made from. `measured` is this section's own spatial assay, which the second
-notebook puts beside the prediction to look at; it also carries the spot
-positions, which is what lets a prediction be made at the same places the
-assay measured.
-
-The patterns are matched case-insensitively against the full member name, so a
-re-upload that changes the case of a directory does not break the fetch.
+`slide` is the H&E image the prediction is made from. The patterns are matched
+case-insensitively against the full member name.
 """
 
 DEFAULT_DEST = Path(__file__).resolve().parent.parent / "data"
@@ -383,7 +368,7 @@ def main(argv: list[str] | None = None) -> int:
         role_pattern(role, args.sample)
     for role in args.roles:
         path = fetch(role, args.dest, sample=args.sample, on_progress=progress)
-        print(f"{role}: {path} ({human(path.stat().st_size)})")
+        print(f"{role}: {path.name} ({human(path.stat().st_size)})")
     return 0
 
 
