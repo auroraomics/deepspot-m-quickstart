@@ -1,41 +1,26 @@
-# Everything the two notebooks import. Python 3.10 or newer, which is the
-# floor the `auroraomics` package sets.
+# Everything the two notebooks import. Python 3.10 or newer.
 #
 #   pip install -r requirements.txt
-#
-# Nothing here is pinned. These notebooks are written against the packages'
-# documented interfaces, and a pin in a quickstart ages into a wrong answer
-# about what the current release does. Pin in your own project, not here.
 
-# The client and the local pipeline: open a slide, judge and pack its tiles,
-# submit, read the result. A plain install pulls in numpy, h5py, opencv,
-# pillow, httpx, pydantic, anndata, tifffile and imagecodecs -- the whole
-# documented path, and no deep-learning framework.
-#
-# Published under its own licence, which is not this repository's MIT:
-# https://docs.auroraomics.org/quickstart/#install
-auroraomics
+# The Aurora client: prepare a slide, submit it and download the result.
+# The notebooks are written against this release or later.
+auroraomics>=0.1.0.dev3
 
-# Reading and analysing the result, which arrives as an AnnData.
-scanpy
+# Exploring the result.
+scanpy>=1.10
 matplotlib
 
-# What scanpy's clustering step needs. Neither is pulled in by scanpy itself.
+# Leiden clustering in notebook 02.
 igraph
-leidenalg
 
 # To run the notebooks.
 jupyterlab
 
-# ---------------------------------------------------------------------------
-# NOT installed by this file, on purpose.
-#
-# The local route in notebook 01 -- running DeepSpot-H on your own machine so
-# that no image leaves it -- needs one extra that carries an encoder runtime:
+# To keep your slides with you, add the extra that runs DeepSpot-H on your
+# machine (not installed by this file):
 #
 #     pip install "auroraomics[embed]"
 #
-# It is gigabytes and specific to the machine it was built for, so asking for
-# it is a decision rather than a side effect of following a quickstart. On a
-# machine with no GPU, ask for the CPU build of the runtime as well; the
-# command is on https://docs.auroraomics.org/guides/embeddings/
+# On a machine with no GPU, ask for the CPU build as well:
+#
+#     pip install "auroraomics[embed]" --extra-index-url https://download.pytorch.org/whl/cpu

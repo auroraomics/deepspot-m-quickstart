@@ -1,39 +1,32 @@
 # DeepSpot-M quickstart
 
-**Predict spatial gene expression from an H&E image, and then read the answer
-like data.** Two notebooks: one takes a slide to a result file, the other takes
-that result file to a gene map, a UMAP and clusters drawn back on the tissue.
+Aurora predicts spatial gene expression from routine H&E images, helping
+researchers explore molecular patterns across samples, cohorts and disease.
 
-**The rule to settle first: you decide what leaves your machine.** Cut your
-slide into tiles and send those, or run DeepSpot-H on your own machine and send
-only the embeddings it computes. Both notebooks show both routes end to end.
-DeepSpot-M runs on the service either way.
+These two notebooks take one H&E slide to its predicted spatial gene
+expression and explore it on your own tissue: a gene map, a UMAP and clusters
+drawn back on the slide.
 
-| Route | What you run locally | What leaves your machine | Observation kind |
-|---|---|---|---|
-| **Send your slides** | Tiling and quality control | The tile images | `patches` |
-| **Your slides stay with you** | Tiling, quality control and DeepSpot-H | Numbers and positions. No image. | `embeddings` |
-
-[Your slides stay with you](https://docs.auroraomics.org/guides/embeddings/) is
-the reference for the second route; it is the page these notebooks follow.
-
-## Who this is for
-
-A computational biologist or bioinformatician who holds H&E images and has no
-spatial assay for them, and who wants to see what a prediction looks like on
-real tissue before deciding whether to run one on their own cohort. You need
-Python and a laptop. A GPU is optional, and only for the local route.
-
-Nothing here is a benchmark, and nothing here reports how well the model does.
-It shows you the shape of the work.
-
-## What is in the repository
-
-| File | What it does |
+| Notebook | What you get |
 |---|---|
-| [`notebooks/01-first-prediction.ipynb`](notebooks/01-first-prediction.ipynb) | One slide to one `.h5ad`, on both routes. |
-| [`notebooks/02-downstream.ipynb`](notebooks/02-downstream.ipynb) | A spatial gene map, a UMAP and clusters drawn back on the tissue. |
-| [`quickstart/zenodo.py`](quickstart/zenodo.py) | Fetches one member of the example archive without downloading the archive. |
+| [`01-first-prediction.ipynb`](notebooks/01-first-prediction.ipynb) | From slide to result: one H&E slide to one `.h5ad`. |
+| [`02-downstream.ipynb`](notebooks/02-downstream.ipynb) | Explore your result: gene maps, a UMAP and clusters on your tissue. |
+
+## Choose the workflow that fits your research
+
+- **Send your slides.** Prepare your H&E slide on your own machine and send its
+  tiles. [Install and prepare a slide](https://docs.auroraomics.org/quickstart/).
+- **Your slides stay with you.** Run DeepSpot-H, the foundation model for H&E
+  images, on your own machine and send the numbers it produces. No image leaves
+  your machine.
+  [Run DeepSpot-H locally](https://docs.auroraomics.org/guides/embeddings/).
+
+DeepSpot-M, the model that predicts spatial gene expression, runs on ours in
+both, and both return the same result file. You choose one in the first
+notebook, with one setting.
+
+To send a slide without writing code, upload it on the website with
+[Aurora Direct](https://auroraomics.org/upload).
 
 ## Run it
 
@@ -41,108 +34,71 @@ It shows you the shape of the work.
 git clone https://github.com/auroraomics/deepspot-m-quickstart.git
 cd deepspot-m-quickstart
 pip install -r requirements.txt
+auroraomics login you@institution.edu
 jupyter lab notebooks/01-first-prediction.ipynb
 ```
 
-Preparing a sample needs no account. Submitting one needs a key, and a key is
-minted for an account that has been granted programmatic access:
-[Get access](https://docs.auroraomics.org/get-access/). Ask before you need it
-— a person reviews the request, and the first two sections of notebook 01 run
-while you wait.
+Notebook 01 needs a key, and `auroraomics login` stores it on this machine.
+[Get access](https://docs.auroraomics.org/get-access/) says how to ask for one.
 
-For the local route, add the one extra that carries an encoder runtime:
+To keep your slides with you, add the extra that runs DeepSpot-H on your
+machine:
 
 ```bash
 pip install "auroraomics[embed]"
 ```
 
-On a machine without a GPU, ask for the CPU build of the runtime as well; the
-[embeddings guide](https://docs.auroraomics.org/guides/embeddings/) gives the
-command.
+On a machine with no GPU, ask for the CPU build as well:
 
-## The example data
+```bash
+pip install "auroraomics[embed]" --extra-index-url https://download.pytorch.org/whl/cpu
+```
 
-One lung-cancer section, `LC1`, from an open dataset of Visium sections with
-tertiary lymphoid structures:
+Analysis is for academic and non-profit research. Commercial evaluation and use
+are governed by a written agreement with Aurora.
+[Discuss commercial access](https://auroraomics.org/contact).
+
+## The example slide
+
+One lung cancer section, `LC1`, from an open-access dataset:
 
 > Dawo, S., Nonchev, K., & Silina, K. (2025). *10x Visium Spatial
 > Transcriptomics Dataset: Kidney (3) and Lung (5) Cancer with Tertiary
 > Lymphoid Structures* [Data set]. Zenodo.
 > <https://doi.org/10.5281/zenodo.14620362>
 
-Licensed **CC-BY-4.0**. If you re-use it, cite it.
-
-**The whole record is one archive of about 1.9 GiB, and the notebooks do not
-download it.** A zip file keeps an index of its members at the end and HTTP can
-ask for a byte range, so `quickstart/zenodo.py` reads the index over two small
-requests and then streams only the member you asked for, checking the member's
-own checksum as the bytes arrive. The slide is about 200 MiB on the wire and
-the measured expression about 18 MiB. Pick a different section by changing one
-name:
+`quickstart/zenodo.py` fetches that one slide from the record, not the whole
+archive. To fetch another section, pass its name:
 
 ```bash
-python -m quickstart.zenodo --list           # every member and what it costs
-python -m quickstart.zenodo slide measured   # just the two the notebooks read
+python -m quickstart.zenodo --list                 # every member of the archive
+python -m quickstart.zenodo slide --sample LC2     # another section's slide
 ```
 
-The record also holds this section's own measured spatial expression. Notebook
-02 puts it beside the prediction, as a picture to look at rather than a score:
-no metric is computed anywhere in this repository, and none should be read out
-of those two panels.
+## What you get back
 
-## What comes back
+One `.h5ad` per slide, with the same layout on both workflows: one row per
+tile, one column per gene, and each tile's centre on your slide under
+`obsm["spatial"]`. Genes are indexed by Ensembl identifier, and the symbol sits
+beside it in `var["feature_name"]`.
+[What you get back](https://docs.auroraomics.org/results/) is the full layout.
 
-One `.h5ad` per job, with the same layout whichever route produced it: one row
-per tile, one column per gene, and the tile's centre in full-resolution slide
-pixels under `obsm["spatial"]`.
+To explore a result as a map in
+[Aurora Intelligence](https://app.auroraomics.org), submit with
+`land_in_workspace=True` and import it into a workspace.
 
-**The gene axis is indexed by Ensembl stable gene identifier, and the symbol
-travels beside it in `var["feature_name"]`.** Symbols are renamed, retired and
-occasionally reassigned; an identifier is not. Look a gene up by identifier and
-read the symbol for the label — this is the one place a first analysis reliably
-goes wrong, and notebook 02 does it the right way in the open.
+## Learn more
 
-`var["measured_in_training"]` states, per gene, whether the model saw that gene
-measured in training. Read it before you act on a gene.
-
-[What you get back](https://docs.auroraomics.org/results/) is the full layout,
-generated from the service, and it is the authority when this page and it
-disagree.
-
-## Access and limits
-
-Analysis is for academic and non-profit research. Commercial evaluation and use
-run under a separate written agreement — <https://auroraomics.org/contact>.
-
-Every approved account starts on the `academic` tier, which meters tiles,
-embedding rows and jobs per key. Notebook 01 prints the current counters out of
-the contract document shipped inside the `auroraomics` package, so what you
-read is what the service enforces rather than a copy of it.
-[Limits](https://docs.auroraomics.org/limits/) states them on the site.
-
-A prediction is a hypothesis about what an assay would have measured. It is not
-a measurement, it is not evidence about a patient, and it has no clinical use.
-[Responsible use](https://docs.auroraomics.org/responsible-use/) states the
-conditions attached to every result, and the published Terms are the binding
-text.
-
-## Related
-
-- [`deepspot-h-quickstart`](https://github.com/auroraomics/deepspot-h-quickstart)
-  — tiling and embeddings on your own machine, in depth. This repository picks
-  up where that one ends.
-- [DeepSpot-H](https://docs.auroraomics.org/models/deepspot-h/) and
-  [DeepSpot-M](https://docs.auroraomics.org/models/deepspot-m/) — what each
-  part reads and returns.
-- <https://auroraomics.org> and <https://docs.auroraomics.org>.
+- [From slide to result](https://docs.auroraomics.org/first-prediction/): the
+  same journey in Aurora Docs, from Python, a shell or an agent.
+- [From an image to a virtual molecular view](https://docs.auroraomics.org/examples/whole-slide/):
+  one real slide, and genes you can check against the stain.
+- [`deepspot-h-quickstart`](https://github.com/auroraomics/deepspot-h-quickstart):
+  tiles and embeddings on your own machine, in depth.
+- [Aurora](https://auroraomics.org) and
+  [Aurora Docs](https://docs.auroraomics.org).
 
 ## Licence
 
-The example code in this repository is MIT — see [LICENSE](LICENSE). Lift a
-cell and use it.
-
-The `auroraomics` package the notebooks call is published under its own,
-different licence, which is stated on its
-[install page](https://docs.auroraomics.org/quickstart/#install). Read it
-before you build on the package. Model weights carry terms of their own, which
-each model's card names.
+The code in this repository is MIT licensed: [LICENSE](LICENSE). The
+`auroraomics` package carries its own licence.
