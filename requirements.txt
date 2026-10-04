@@ -1,0 +1,26 @@
+# Everything the two notebooks import. Python 3.10 or newer.
+#
+#   pip install -r requirements.txt
+
+# The Aurora client: prepare a slide, submit it and download the result.
+# The notebooks are written against this release or later.
+auroraomics>=0.1.0.dev3
+
+# Exploring the result.
+scanpy>=1.10
+matplotlib
+
+# Leiden clustering in notebook 02.
+igraph
+
+# To run the notebooks.
+jupyterlab
+
+# To keep your slides with you, add the extra that runs DeepSpot-H on your
+# machine (not installed by this file):
+#
+#     pip install "auroraomics[embed]"
+#
+# On a machine with no GPU, ask for the CPU build as well:
+#
+#     pip install "auroraomics[embed]" --extra-index-url https://download.pytorch.org/whl/cpu
